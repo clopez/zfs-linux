@@ -1,0 +1,2 @@
+# When building from git repository ignore files not present on pristine-tar
+extend-diff-ignore = "(^|/)(README\.markdown|patches/.*|scripts/.*|lib/libspl/asm-generic/atomic\.S|config/suppressed-warnings\.txt)$"

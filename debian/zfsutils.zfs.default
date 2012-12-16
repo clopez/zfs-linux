@@ -1,0 +1,27 @@
+# Defaults for zfs initscript
+# sourced by /etc/init.d/zfs
+# installed at /etc/default/zfs by the maintainer scripts
+
+#
+# This is a POSIX shell fragment
+#
+
+# If you want to handle your zfs filesystems with the traditional mount(8)
+# or configure them under /etc/fstab, then you must set the "mountpoint"
+# propierty to "legacy" with the zfs tool.
+# zfs set mountpoint=legacy tank/fs
+
+# Configuration of which filesystems should be mounted is handled
+# by the zfs "mountpoint" and "canmount" properties.
+# See the zfs(8) man page for details.
+
+# Run `zfs mount -a` `zfs unmount -a`
+# Automatically mount/unmount ALL ZFS filesystems that don't have a "legacy"
+# mountpoint property at system startup and system shutdown.
+ZFS_MOUNT=yes
+
+# Automatically run `zfs share -a` at system startup.
+# ZFS_SHARE=yes
+
+# Force the initscript to output non-warning messages on startup
+# VERBOSE=yes

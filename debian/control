@@ -1,0 +1,128 @@
+Source: zfs-linux
+Section: kernel
+Priority: extra
+Maintainer: Carlos Alberto Lopez Perez <clopez@igalia.com>
+Build-Depends: autotools-dev,
+ autoconf,
+ autogen,
+ automake,
+ debhelper (>= 9),
+ dkms (>= 2.1.1.2-5),
+ libselinux1-dev,
+ libtool,
+ uuid-dev,
+ zlib1g-dev,
+ dh-autoreconf
+Standards-Version: 3.8.4
+Vcs-Git: git://github.com/clopez/zfs-linux.git
+Vcs-Browser: http://github.com/clopez/zfs-linux
+
+Package: libzfs-dev
+Section: libdevel
+Architecture: linux-any
+Depends: ${misc:Depends}, libzfs1 (= ${binary:Version})
+Description: Native ZFS filesystem development files for Linux
+ Header files and static libraries for compiling software
+ against libzfs.
+
+Package: libzfs1
+Section: libs
+Architecture: linux-any
+Depends: ${misc:Depends}, ${shlibs:Depends}
+Description: Native ZFS filesystem library for Linux
+ This library provides a variety of glue functions for ZFS on Linux:
+  * libspl: The Solaris Porting Layer library, which provides APIs that make
+    it possible to run OpenSolaris/Illumos user code in a Linux environment
+    with relatively minimal modification.
+  * libavl: The Adelson-Velskii Landis balanced binary tree manipulation
+    library.
+  * libefi: The Extensible Firmware Interface library for GUID disk
+    partitioning.
+  * libshare: NFS and SMB service integration for ZFS.
+  * libzfs: The zfs management library.
+  * libzpool: The zpool management library.
+
+Package: libzfs1-dbg
+Section: debug
+Architecture: linux-any
+Depends: ${misc:Depends}, libzfs1 (= ${binary:Version})
+Description: Native ZFS filesystem library for Linux
+ This library provides a variety of glue functions for ZFS on Linux:
+  * libspl: The Solaris Porting Layer library, which provides APIs that make
+    it possible to run OpenSolaris/Illumos user code in a Linux environment
+    with relatively minimal modification.
+  * libavl: The Adelson-Velskii Landis balanced binary tree manipulation
+    library.
+  * libefi: The Extensible Firmware Interface library for GUID disk
+    partitioning.
+  * libshare: NFS and SMB service integration for ZFS.
+  * libzfs: The zfs management library.
+  * libzpool: The zpool management library.
+ .
+ This package contains the debugging symbols.
+
+Package: zfs-dkms
+Section: kernel
+Architecture: linux-any
+Pre-Depends: debconf (>= 0.2.17)
+Depends: ${misc:Depends}, dkms (>= 2.1.1.2-5), spl-dkms (>= ${source:Upstream-Version})
+Recommends: zfsutils (= ${binary:Version})
+Description: Native ZFS filesystem kernel modules for Linux
+ This package contains the source code for the native implementation of ZFS
+ for the Linux Kernel, which can be used with DKMS, so that local kernel
+ modules are automatically built and installed every time the kernel packages
+ are upgraded.
+ .
+ ZFS is an advanced integrated volume manager and filesystem that is designed
+ for performance and data integrity. Snapshots, clones, checksums,
+ deduplication, compression, and RAID redundancy are built-in features.
+ .
+ Includes the SPA, DMU, ZVOL, and ZPL components of ZFS.
+
+Package: zfs-initramfs
+Section: kernel
+Architecture: linux-any
+Depends: ${misc:Depends}, zfsutils
+Description: Native ZFS root filesystem capabilities for Linux
+ This package adds ZFS to the system initramfs with a hook
+ for the initramfs-tools infrastructure.
+
+Package: zfsutils
+Section: admin
+Architecture: linux-any
+Depends: libzfs1 (= ${binary:Version}), ${misc:Depends}, ${shlibs:Depends}
+Recommends: zfs-dkms
+Suggests: nfs-kernel-server, zfs-initramfs
+Conflicts: zfs-fuse
+Description: Native ZFS management utilities for Linux
+ This package provides the user space utilities and scripts that are used
+ to manage ZFS filesystems like zpool and zvol among others.
+
+Package: zfsutils-dbg
+Section: debug
+Architecture: linux-any
+Depends: ${misc:Depends}, zfsutils (= ${binary:Version})
+Recommends: zfs-dkms
+Suggests: nfs-kernel-server, zfs-initramfs
+Conflicts: zfs-fuse
+Description: Native ZFS management utilities for Linux
+ This package provides the user space utilities and scripts that are used
+ to manage ZFS filesystems like zpool and zvol among others.
+ .
+ This package contains the debugging symbols for zfsutils.
+
+Package: zfs-linux
+Section: metapackages
+Architecture: linux-any
+Depends: zfs-dkms (= ${binary:Version}), zfsutils (= ${binary:Version}),
+ zfs-initramfs (= ${binary:Version}), ${misc:Depends}
+Description: Native Linux kernel port of the ZFS filesystem.
+ ZFS is an advanced file system and volume manager which was originally
+ developed for Solaris. It provides a number of advanced features like
+ snapshots, clones, live integrity checksums, deduplication, compression
+ and much more. The port to the Linux kernel includes a functional and
+ stable SPA, DMU, ZVOL and ZFS Posix Layer (ZPL).
+ .
+ This meta-package depends on the ZFS and SPL Kernel modules, which can
+ be used with DKMS. It also depends on the user spaces utilities needed
+ to manage ZFS filesystems and on the initramfs helpers for ZFS.

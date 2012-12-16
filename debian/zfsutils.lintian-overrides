@@ -1,0 +1,3 @@
+# ZFS should be unmounted/stopped only on halt and reboot.
+# It souldn't be stopped when entering in single user mode.
+zfsutils: init.d-script-possible-missing-stop etc/init.d/zfs 1

@@ -1,0 +1,19 @@
+ZFS on Linux for Debian
+-----------------------
+
+This package builds the ZFS binary kernel module using DKMS.
+
+Provided that you have the kernel header packages installed, the kernel
+module will be built for your running kernel and automatically rebuilt
+for any new kernel headers that are installed.
+
+The dkms package recommends the linux-headers package needed to build
+modules for the current distribution kernel. If this for whatever reason
+does not work or you are using a non-distribution kernel please make sure
+the right set of kernel headers is installed.
+
+To successfully build the ZFS kernel module, the SPL kernel module has to
+be built first. This package depends on the zfs-dkms package, which will
+build the right SPL module for your kernel.
+
+ -- Carlos Alberto Lopez Perez <clopez@igalia.com>  Tue, 11 Dec 2012 22:22:22 +0100

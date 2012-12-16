@@ -1,0 +1,24 @@
+#!/bin/sh -e
+
+# Source debconf library (W: postinst-does-not-load-confmodule)
+. /usr/share/debconf/confmodule
+
+
+#DEBHELPER#
+
+# This checks at the end of postinst (macro debhelper before)
+case "$1" in
+	configure)
+
+		if [ -x /usr/share/update-notifier/notify-reboot-required ]; then
+			/usr/share/update-notifier/notify-reboot-required
+		fi
+
+	;;
+        install)
+
+                # Only execute on first install
+                # This should load ZFS
+                modprobe zfs || true
+        ;;
+esac

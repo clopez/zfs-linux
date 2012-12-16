@@ -1,0 +1,4 @@
+lib/libnvpair.so.*
+lib/libuutil.so.*
+lib/libzfs.so.*
+lib/libzpool.so.*

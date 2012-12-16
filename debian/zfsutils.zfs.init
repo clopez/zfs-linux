@@ -1,0 +1,165 @@
+#! /bin/sh
+### BEGIN INIT INFO
+# Provides: zfs zvol
+# Required-Start: $local_fs $remote_fs
+# Required-Stop: $local_fs $remote_fs
+# Default-Start:     S
+# Default-Stop:      0 6
+# Should-Stop:
+# Short-Description: Mount/umount the zfs filesystems
+# Description: ZFS is an advanced filesystem designed to simplify managing
+#              and protecting your data.  This service mounts the ZFS
+#              filesystems and starts all related zfs services.
+### END INIT INFO
+
+# Source function library.
+. /lib/lsb/init-functions
+
+PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin
+LOCKFILE=/var/lock/zfs
+ZFS="/sbin/zfs"
+ZPOOL="/sbin/zpool"
+ZPOOL_CACHE="/etc/zfs/zpool.cache"
+
+# Source zfs configuration.
+[ -r '/etc/default/zfs' ] &&  . /etc/default/zfs
+
+# Gracefully exit if the package has been removed.
+[ -x "$ZPOOL" ] || exit 0
+[ -x "$ZFS" ] || exit 0
+
+log()
+{
+	# Only output for failure/warnings if verbose is disabled.
+	local command=$1
+	shift 1
+	case "$command" in
+		warning)
+			log_warning_msg "$@" "."
+			;;
+		failure)
+			 log_failure_msg "$@" "."
+			;;
+		begin)
+			[ "$VERBOSE" != no ] && log_begin_msg "$@" "."
+			;;
+		end)
+			if [ "$@" -eq 0 ]; then
+				[ "$VERBOSE" != no ] && log_end_msg "$@"
+			else
+				log_end_msg "$@"
+			fi
+			;;
+	esac
+}
+
+
+start()
+{
+	# Return
+	#   0 if zfs mounts were started
+	#   1 if zfs mounts were already started
+	#   2 if zfs could not be started
+	#   3 if a failure ocurred
+	if [ -f "$LOCKFILE" ]; then
+		log warning "Already mounted"
+		return 1
+	fi
+
+	# Requires selinux policy which has not been written.
+	if [ -r "/selinux/enforce" ] &&	[ "$(cat /selinux/enforce)" = "1" ]; then
+		[ "$VERBOSE" != no ] && log_failure_msg "SELinux ZFS policy required"
+		return 3
+	fi
+
+	# Delay until all required block devices are present.
+	udevadm settle
+
+	# Load the zfs module stack
+
+	if ! grep -q "zfs" /proc/modules; then
+	  if ! modprobe zfs; then
+			log failure "Unable to load ZFS module"
+			return 3
+	  fi
+	fi
+
+	# Import all pools described by the cache file, and then mount
+	# all filesystem based on their properties.
+	if [ -f "$ZPOOL_CACHE" ] ; then
+		if echo "$ZFS_MOUNT" | grep -qxi "yes"; then
+			log begin "Importing ZFS pools"
+			"$ZPOOL" import -c "$ZPOOL_CACHE" -aN 2>/dev/null
+			log end $?
+			log begin "Mounting non-legacy ZFS filesystems"
+			"$ZFS" mount -a
+			log end $?
+		fi
+		if echo "$ZFS_SHARE" | grep -qxi "yes"; then
+			log begin "Sharing ZFS filesystems"
+			"$ZFS" share -a
+			log end $?
+		fi
+	else
+		log failure "Unable to find zpool cache at: $ZPOOL_CACHE"
+		return 3
+	fi
+
+	touch "$LOCKFILE"
+}
+
+stop()
+{
+	# Return
+	#   0 if zfs mounts were stopped
+	#   1 if zfs mounts were already stopped
+	#   2 if zfs could not be stopped
+	#   3 if a failure ocurred
+	if [ ! -f "$LOCKFILE" ]; then
+		log warning "Already stopped"
+		return 1
+	fi
+
+	if echo "$ZFS_MOUNT" | grep -qxi "yes" || echo "$ZFS_SHARE" | grep -qxi "yes"; then
+		log begin "Stopping non-legacy ZFS filesystems"
+		"$ZFS" umount -a
+		log end $?
+	fi
+
+	rm -f "$LOCKFILE"
+}
+
+status()
+{
+	if ! grep -q "zfs" /proc/modules; then
+		log failure "ZFS module not loaded"
+		return 3
+	fi
+
+	echo "zpool status: " && "$ZPOOL" status && echo
+	echo "zpool list: " && "$ZPOOL" list && echo
+	echo "Mounted ZFS filesystems: " && \
+		"$ZFS" get -o name,property,value mounted && echo
+}
+
+case "$1" in
+	start)
+		start
+		;;
+	stop)
+		stop
+		;;
+	status)
+		status
+		;;
+	restart|force-reload)
+		stop
+		start
+		;;
+	*)
+		echo "Usage: $0 {start|stop|status|restart|force-reload}"
+		exit 1
+		;;
+esac
+
+:
